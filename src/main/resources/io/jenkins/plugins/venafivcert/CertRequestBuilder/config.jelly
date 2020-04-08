@@ -1,0 +1,52 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <f:entry title="${%Select Venafi VCert connector}" field="connectorName">
+        <f:select />
+    </f:entry>
+    <f:entry title="${%Zone configuration name}" field="zoneConfigName">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="${%Common name}" field="commonName">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="${%Organization}" field="organization">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="${%Organization unit}" field="organizationUnit">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="${%Locality}" field="locality">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="${%Province}" field="province">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="${%Country}" field="country">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="${%DNS names}" field="dnsNames">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="${%IP addresses}" field="ipAddresses">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="${%Email addresses}" field="emailAddresses">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="${%Key type}" field="keyType">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="${%Private key output path}" field="privKeyOutput">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="${%Certificate output path}" field="certOutput">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="${%Certificate chain output path}" field="certChainOutput">
+        <f:textbox />
+    </f:entry>
+</j:jelly>
