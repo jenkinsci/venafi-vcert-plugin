@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.PasswordCredentials;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
@@ -40,7 +41,7 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
     private String tppCredentialsId;
 
     @SuppressFBWarnings("UUF_UNUSED_FIELD")
-    private String cloudApiKey;
+    private String cloudCredentialsId;
 
     @DataBoundConstructor
     public ConnectorConfig() {
@@ -64,8 +65,8 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
     }
 
     @DataBoundSetter
-    public void setType(String displayName) {
-        this.type = ConnectorType.valueOfDisplayName(displayName);
+    public void setType(String name) {
+        this.type = ConnectorType.valueOf(name);
     }
 
     public String getTppBaseUrl() {
@@ -86,13 +87,13 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
         this.tppCredentialsId = value;
     }
 
-    public String getCloudApiKey() {
-        return cloudApiKey;
+    public String getCloudCredentialsId() {
+        return cloudCredentialsId;
     }
 
     @DataBoundSetter
-    public void setCloudApiKey(String value) {
-        this.cloudApiKey = value;
+    public void setCloudCredentialsId(String value) {
+        this.cloudCredentialsId = value;
     }
 
     @Extension
@@ -110,16 +111,16 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
             return items;
         }
 
-        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+        public ListBoxModel doFillTppCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String value) {
             StandardListBoxModel result = new StandardListBoxModel();
             if (item == null) {
                 if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
-                    return result.includeCurrentValue(credentialsId);
+                    return result.includeCurrentValue(value);
                 }
             } else {
                 if (!item.hasPermission(Item.EXTENDED_READ)
                     && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
-                    return result.includeCurrentValue(credentialsId);
+                    return result.includeCurrentValue(value);
                 }
             }
 
@@ -132,18 +133,58 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
 					    CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class),
 					    CredentialsMatchers.instanceOf(UsernamePasswordCredentials.class))
                 )
-                .includeCurrentValue(credentialsId);
+                .includeCurrentValue(value);
         }
 
-        public FormValidation doCheckName(@QueryParameter String value, @QueryParameter String id) {
+        public ListBoxModel doFillCloudCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String value) {
+            StandardListBoxModel result = new StandardListBoxModel();
+            if (item == null) {
+                if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                    return result.includeCurrentValue(value);
+                }
+            } else {
+                if (!item.hasPermission(Item.EXTENDED_READ)
+                    && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                    return result.includeCurrentValue(value);
+                }
+            }
+
+            return result
+                .includeMatchingAs(ACL.SYSTEM,
+                    item,
+                    StandardCredentials.class,
+                    new ArrayList<>(),
+                    CredentialsMatchers.anyOf(
+					    CredentialsMatchers.instanceOf(PasswordCredentials.class))
+                )
+                .includeCurrentValue(value);
+        }
+
+        public FormValidation doCheckName(@QueryParameter String value) {
             return FormValidation.validateRequired(value);
         }
 
-        public FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String credentialsId) {
+        public FormValidation doCheckTppBaseUrl(@QueryParameter String value, @QueryParameter String type) {
+            ConnectorType cType = ConnectorType.valueOf(type);
+            if (cType == ConnectorType.TPP) {
+                return FormValidation.validateRequired(value);
+            } else {
+                return FormValidation.ok();
+            }
+        }
+
+        public FormValidation doCheckTppCredentialsId(@AncestorInPath Item item, @QueryParameter String value,
+            @QueryParameter String type)
+        {
+            ConnectorType cType = ConnectorType.valueOf(type);
+            if (cType != ConnectorType.TPP) {
+                return FormValidation.ok();
+            }
+
             if (item == null) {
-                    if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
-                        return FormValidation.ok();
-                    }
+                if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                    return FormValidation.ok();
+                }
             } else {
                 if (!item.hasPermission(Item.EXTENDED_READ)
                     && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
@@ -151,7 +192,33 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
                 }
             }
 
-            if (Utils.findCredentials(credentialsId, item) == null) {
+            if (Utils.findCredentials(value, item) == null) {
+                return FormValidation.error("Cannot find currently selected credentials");
+            }
+
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckCloudCredentialsId(@AncestorInPath Item item, @QueryParameter String value,
+            @QueryParameter String type)
+        {
+            ConnectorType cType = ConnectorType.valueOf(type);
+            if (cType != ConnectorType.CLOUD) {
+                return FormValidation.ok();
+            }
+
+            if (item == null) {
+                if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                    return FormValidation.ok();
+                }
+            } else {
+                if (!item.hasPermission(Item.EXTENDED_READ)
+                    && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                    return FormValidation.ok();
+                }
+            }
+
+            if (Utils.findCredentials(value, item) == null) {
                 return FormValidation.error("Cannot find currently selected credentials");
             }
 

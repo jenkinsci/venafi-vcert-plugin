@@ -5,7 +5,7 @@
     </f:entry>
 
     <f:entry title="${%Type}" field="type">
-        <f:select />
+        <f:select default="TPP" />
     </f:entry>
 
     <f:section title="${%TPP configuration}">
@@ -13,14 +13,14 @@
             <f:textbox />
         </f:entry>
 
-        <!-- <f:entry title="${%Credentials}" field="tppCredentialsId">
+        <f:entry title="${%Credentials}" field="tppCredentialsId">
             <c:select context="${app}" includeUser="false" expressionAllowed="false" />
-        </f:entry> -->
+        </f:entry>
     </f:section>
 
     <f:section title="${%Cloud configuration}">
-        <f:entry title="${%API key}" field="cloudApiKey">
-            <f:textbox />
+        <f:entry title="${%API key}" field="cloudCredentialsId">
+            <c:select context="${app}" includeUser="false" expressionAllowed="false" />
         </f:entry>
     </f:section>
 
