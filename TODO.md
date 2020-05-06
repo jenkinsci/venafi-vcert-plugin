@@ -1,15 +1,3 @@
-VCertConnector(
-    type
-
-    TPP:
-        baseUrl
-        username
-        password
-
-    Cloud:
-        apiKey
-)
-
 venafiRequestCertificate(
     connectorName
 

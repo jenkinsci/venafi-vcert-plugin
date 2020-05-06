@@ -5,7 +5,9 @@
     </f:entry>
 
     <f:entry title="${%Type}" field="type">
-        <f:select default="TPP" />
+        <f:enum field="type">
+            ${it}
+        </f:enum>
     </f:entry>
 
     <f:section title="${%TPP configuration}">

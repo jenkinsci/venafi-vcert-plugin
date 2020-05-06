@@ -56,17 +56,13 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
         this.name = value;
     }
 
-    public ConnectorType getTypeObject() {
+    public ConnectorType getType() {
         return type;
     }
 
-    public String getType() {
-        return type.toString();
-    }
-
     @DataBoundSetter
-    public void setType(String name) {
-        this.type = ConnectorType.valueOf(name);
+    public void setConnectorType(ConnectorType value) {
+        this.type = value;
     }
 
     public String getTppBaseUrl() {
@@ -101,14 +97,6 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
         @Override
         public String getDisplayName() {
             return Messages.ConnectorConfig_displayName();
-        }
-
-        public ListBoxModel doFillTypeItems() {
-            ListBoxModel items = new ListBoxModel();
-            for (ConnectorType type: ConnectorType.class.getEnumConstants()) {
-                items.add(type.toString(), type.name());
-            }
-            return items;
         }
 
         public ListBoxModel doFillTppCredentialsIdItems(@AncestorInPath Item item, @QueryParameter String value) {
@@ -174,10 +162,9 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
         }
 
         public FormValidation doCheckTppCredentialsId(@AncestorInPath Item item, @QueryParameter String value,
-            @QueryParameter String type)
+            @QueryParameter ConnectorType type)
         {
-            ConnectorType cType = ConnectorType.valueOf(type);
-            if (cType != ConnectorType.TPP) {
+            if (type != ConnectorType.TPP) {
                 return FormValidation.ok();
             }
 
@@ -200,10 +187,9 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
         }
 
         public FormValidation doCheckCloudCredentialsId(@AncestorInPath Item item, @QueryParameter String value,
-            @QueryParameter String type)
+            @QueryParameter ConnectorType type)
         {
-            ConnectorType cType = ConnectorType.valueOf(type);
-            if (cType != ConnectorType.CLOUD) {
+            if (type != ConnectorType.CLOUD) {
                 return FormValidation.ok();
             }
 

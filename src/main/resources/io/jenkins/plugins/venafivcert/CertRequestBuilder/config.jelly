@@ -6,47 +6,52 @@
     <f:entry title="${%Zone configuration name}" field="zoneConfigName">
         <f:textbox />
     </f:entry>
-
-    <f:entry title="${%Common name}" field="commonName">
-        <f:textbox />
-    </f:entry>
-    <f:entry title="${%Organization}" field="organization">
-        <f:textbox />
-    </f:entry>
-    <f:entry title="${%Organization unit}" field="organizationUnit">
-        <f:textbox />
-    </f:entry>
-    <f:entry title="${%Locality}" field="locality">
-        <f:textbox />
-    </f:entry>
-    <f:entry title="${%Province}" field="province">
-        <f:textbox />
-    </f:entry>
-    <f:entry title="${%Country}" field="country">
-        <f:textbox />
+    <f:entry title="${%Key type}" field="keyType">
+        <f:enum field="keyType">
+            ${it}
+        </f:enum>
     </f:entry>
 
     <f:entry title="${%DNS names}" field="dnsNames">
-        <f:textbox />
+        <f:expandableTextbox />
     </f:entry>
     <f:entry title="${%IP addresses}" field="ipAddresses">
-        <f:textbox />
+        <f:expandableTextbox />
     </f:entry>
     <f:entry title="${%Email addresses}" field="emailAddresses">
-        <f:textbox />
+        <f:expandableTextbox />
     </f:entry>
 
-    <f:entry title="${%Key type}" field="keyType">
-        <f:textbox />
-    </f:entry>
+    <f:section title="${%Subject}">
+        <f:entry title="${%Common name}" field="commonName">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="${%Organization}" field="organization">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="${%Organization unit}" field="organizationUnit">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="${%Locality}" field="locality">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="${%Province}" field="province">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="${%Country}" field="country">
+            <f:textbox />
+        </f:entry>
+    </f:section>
 
-    <f:entry title="${%Private key output path}" field="privKeyOutput">
-        <f:textbox />
-    </f:entry>
-    <f:entry title="${%Certificate output path}" field="certOutput">
-        <f:textbox />
-    </f:entry>
-    <f:entry title="${%Certificate chain output path}" field="certChainOutput">
-        <f:textbox />
-    </f:entry>
+    <f:section title="${%Output}">
+        <f:entry title="${%Private key output path}" field="privKeyOutput">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="${%Certificate output path}" field="certOutput">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="${%Certificate chain output path}" field="certChainOutput">
+            <f:textbox />
+        </f:entry>
+    </f:section>
 </j:jelly>
