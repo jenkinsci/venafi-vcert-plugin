@@ -29,7 +29,7 @@
         <f:entry title="${%Organization}" field="organization">
             <f:textbox />
         </f:entry>
-        <f:entry title="${%Organization unit}" field="organizationUnit">
+        <f:entry title="${%Organizational unit}" field="organizationalUnit">
             <f:textbox />
         </f:entry>
         <f:entry title="${%Locality}" field="locality">
