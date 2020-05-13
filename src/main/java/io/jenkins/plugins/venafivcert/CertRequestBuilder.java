@@ -434,6 +434,10 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
             return FormValidation.validateRequired(value);
         }
 
+        public FormValidation doCheckCommonName(@QueryParameter String value) {
+            return FormValidation.validateRequired(value);
+        }
+
         public FormValidation doCheckPrivKeyOutput(@QueryParameter String value) {
             return FormValidation.validateRequired(value);
         }
