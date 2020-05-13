@@ -49,7 +49,7 @@ public class PluginConfig extends GlobalConfiguration {
     }
 
     @Nullable
-    public ConnectorConfig getTppConfigByName(String name) {
+    public ConnectorConfig getConnectorConfigByName(String name) {
         for (ConnectorConfig config: connectorConfigs) {
             if (config.getName().equals(name)) {
                 return config;

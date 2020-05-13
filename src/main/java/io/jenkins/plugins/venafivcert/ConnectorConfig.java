@@ -1,16 +1,16 @@
 package io.jenkins.plugins.venafivcert;
 
-import java.util.ArrayList;
+import java.util.Collections;
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.common.PasswordCredentials;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.venafi.vcert.sdk.endpoint.ConnectorType;
 
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -61,7 +61,7 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
     }
 
     @DataBoundSetter
-    public void setConnectorType(ConnectorType value) {
+    public void setType(ConnectorType value) {
         this.type = value;
     }
 
@@ -116,10 +116,8 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
                 .includeMatchingAs(ACL.SYSTEM,
                     item,
                     StandardCredentials.class,
-                    new ArrayList<>(),
-                    CredentialsMatchers.anyOf(
-					    CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class),
-					    CredentialsMatchers.instanceOf(UsernamePasswordCredentials.class))
+                    Collections.emptyList(),
+                    CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class)
                 )
                 .includeCurrentValue(value);
         }
@@ -140,10 +138,10 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
             return result
                 .includeMatchingAs(ACL.SYSTEM,
                     item,
-                    StandardCredentials.class,
-                    new ArrayList<>(),
+                    StringCredentials.class,
+                    Collections.emptyList(),
                     CredentialsMatchers.anyOf(
-					    CredentialsMatchers.instanceOf(PasswordCredentials.class))
+					    CredentialsMatchers.instanceOf(StringCredentials.class))
                 )
                 .includeCurrentValue(value);
         }
@@ -179,7 +177,7 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
                 }
             }
 
-            if (Utils.findCredentials(value, item) == null) {
+            if (Utils.findCredentials(StandardUsernamePasswordCredentials.class, value, item) == null) {
                 return FormValidation.error("Cannot find currently selected credentials");
             }
 
@@ -204,7 +202,7 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
                 }
             }
 
-            if (Utils.findCredentials(value, item) == null) {
+            if (Utils.findCredentials(StringCredentials.class, value, item) == null) {
                 return FormValidation.error("Cannot find currently selected credentials");
             }
 

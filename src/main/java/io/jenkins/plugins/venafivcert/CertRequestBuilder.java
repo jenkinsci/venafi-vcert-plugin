@@ -1,15 +1,34 @@
 package io.jenkins.plugins.venafivcert;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.venafi.vcert.sdk.Config;
+import com.venafi.vcert.sdk.VCertClient;
+import com.venafi.vcert.sdk.VCertException;
+import com.venafi.vcert.sdk.Config.ConfigBuilder;
+import com.venafi.vcert.sdk.certificate.CertificateRequest;
 import com.venafi.vcert.sdk.certificate.KeyType;
+import com.venafi.vcert.sdk.certificate.PEMCollection;
+import com.venafi.vcert.sdk.connectors.tpp.ZoneConfiguration;
+import com.venafi.vcert.sdk.endpoint.Authentication;
+import com.venafi.vcert.sdk.endpoint.ConnectorType;
 
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -20,6 +39,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import hudson.util.Secret;
 import jenkins.tasks.SimpleBuildStep;
 
 public class CertRequestBuilder extends Builder implements SimpleBuildStep {
@@ -48,7 +68,7 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     private String organization;
 
     @SuppressFBWarnings("UUF_UNUSED_FIELD")
-    private String organizationUnit;
+    private String organizationalUnit;
 
     @SuppressFBWarnings("UUF_UNUSED_FIELD")
     private String locality;
@@ -86,8 +106,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
-    public void setZoneConfigName(String zoneConfigName) {
-        this.zoneConfigName = zoneConfigName;
+    public void setZoneConfigName(String value) {
+        this.zoneConfigName = value;
     }
 
     public KeyType getKeyType() {
@@ -95,8 +115,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
-    public void setKeyType(KeyType keyType) {
-        this.keyType = keyType;
+    public void setKeyType(KeyType value) {
+        this.keyType = value;
     }
 
     public String getDnsNames() {
@@ -104,8 +124,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
-    public void setDnsNames(String dnsNames) {
-        this.dnsNames = dnsNames;
+    public void setDnsNames(String value) {
+        this.dnsNames = value;
     }
 
     public String getIpAddresses() {
@@ -113,8 +133,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
-    public void setIpAddresses(String ipAddresses) {
-        this.ipAddresses = ipAddresses;
+    public void setIpAddresses(String value) {
+        this.ipAddresses = value;
     }
 
     public String getEmailAddresses() {
@@ -122,8 +142,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
-    public void setEmailAddresses(String emailAddresses) {
-        this.emailAddresses = emailAddresses;
+    public void setEmailAddresses(String value) {
+        this.emailAddresses = value;
     }
 
     public String getCommonName() {
@@ -131,8 +151,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
-    public void setCommonName(String commonName) {
-        this.commonName = commonName;
+    public void setCommonName(String value) {
+        this.commonName = value;
     }
 
     public String getOrganization() {
@@ -140,17 +160,17 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
-    public void setOrganization(String organization) {
-        this.organization = organization;
+    public void setOrganization(String value) {
+        this.organization = value;
     }
 
-    public String getOrganizationUnit() {
-        return organizationUnit;
+    public String getOrganizationalUnit() {
+        return organizationalUnit;
     }
 
     @DataBoundSetter
-    public void setOrganizationUnit(String organizationUnit) {
-        this.organizationUnit = organizationUnit;
+    public void setOrganizationalUnit(String value) {
+        this.organizationalUnit = value;
     }
 
     public String getLocality() {
@@ -158,8 +178,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
-    public void setLocality(String locality) {
-        this.locality = locality;
+    public void setLocality(String value) {
+        this.locality = value;
     }
 
     public String getProvince() {
@@ -167,8 +187,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
-    public void setProvince(String province) {
-        this.province = province;
+    public void setProvince(String value) {
+        this.province = value;
     }
 
     public String getCountry() {
@@ -176,8 +196,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
-    public void setCountry(String country) {
-        this.country = country;
+    public void setCountry(String value) {
+        this.country = value;
     }
 
     public String getPrivKeyOutput() {
@@ -185,8 +205,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
-    public void setPrivKeyOutput(String privKeyOutput) {
-        this.privKeyOutput = privKeyOutput;
+    public void setPrivKeyOutput(String value) {
+        this.privKeyOutput = value;
     }
 
     public String getCertOutput() {
@@ -211,6 +231,108 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
         throws InterruptedException, IOException
     {
+        ConnectorConfig connectorConfig = PluginConfig.get()
+            .getConnectorConfigByName(getConnectorName());
+        if (connectorConfig == null) {
+            throw new AbortException("No Venafi VCert connector configuration with name '"
+                + getConnectorName() + "' found");
+        }
+
+        try {
+            Config sdkConfig = createSdkConfig(connectorConfig);
+            Authentication sdkAuth = createSdkAuthObject(run, connectorConfig);
+            VCertClient client = new VCertClient(sdkConfig);
+            client.authenticate(sdkAuth);
+
+            ZoneConfiguration zoneConfig = client.readZoneConfiguration(getZoneConfigName());
+
+            CertificateRequest certReq = new CertificateRequest();
+            certReq
+                .keyType(getKeyType())
+                .dnsNames(getAsList(getDnsNames()))
+                .ipAddresses(getIpAddressesAsInetAddresses())
+                .emailAddresses(getAsList(getEmailAddresses()));
+            certReq.subject(
+                new CertificateRequest.PKIXName()
+                    .commonName(getCommonName())
+                    .organization(getAsList(getOrganization()))
+                    .organizationalUnit(getAsList(getOrganizationalUnit()))
+                    .country(getAsList(getCountry()))
+                    .locality(getAsList(getLocality()))
+                    .province(getAsList(getProvince())));
+
+            certReq = client.generateRequest(zoneConfig, certReq);
+            client.requestCertificate(certReq, zoneConfig);
+
+            PEMCollection pemCollection = client.retrieveCertificate(certReq);
+
+            FilePath privKeyOutputFile = workspace.child(getPrivKeyOutput());
+            privKeyOutputFile.write(pemCollection.pemPrivateKey(), "UTF-8");
+            privKeyOutputFile.chmod(0600);
+
+            workspace.child(getCertOutput()).write(
+                pemCollection.pemCertificate(), "UTF-8");
+            workspace.child(getCertChainOutput()).write(
+                pemCollection.pemCertificateChain(), "UTF-8");
+        } catch (VCertException e) {
+            throw new AbortException("VCert error: " + e.getMessage());
+        }
+    }
+
+    private List<String> getAsList(String value) {
+        if (value == null) {
+            return Collections.emptyList();
+        } else {
+            return Utils.parseStringAsNewlineDelimitedList(value);
+        }
+    }
+
+    private Collection<InetAddress> getIpAddressesAsInetAddresses()
+        throws AbortException
+    {
+        try {
+            Collection<InetAddress> result = new ArrayList<InetAddress>();
+            for (String ipAddr: getAsList(getIpAddresses())) {
+                result.add(InetAddress.getByName(ipAddr));
+            }
+            return result;
+        } catch (UnknownHostException e) {
+            throw new AbortException("Error resolving one of the provided IP addresses: "
+                + e.getMessage());
+        }
+    }
+
+    private Config createSdkConfig(ConnectorConfig connectorConfig) {
+        ConfigBuilder sdkConfig = Config.builder();
+        sdkConfig.connectorType(connectorConfig.getType());
+        if (connectorConfig.getType() == ConnectorType.TPP) {
+            sdkConfig.baseUrl(connectorConfig.getTppBaseUrl());
+        }
+        return sdkConfig.build();
+    }
+
+    private Authentication createSdkAuthObject(Run<?, ?> run, ConnectorConfig connectorConfig) {
+        if (connectorConfig.getType() == ConnectorType.TPP) {
+            StandardUsernamePasswordCredentials credentials = Utils.findCredentials(
+                StandardUsernamePasswordCredentials.class,
+                connectorConfig.getTppCredentialsId(),
+                null);
+            CredentialsProvider.track(run, credentials);
+            return Authentication.builder()
+                .user(credentials.getUsername())
+                .password(Secret.toString(credentials.getPassword()))
+                .build();
+        } else {
+            assert connectorConfig.getType() == ConnectorType.CLOUD;
+            StringCredentials credentials = Utils.findCredentials(
+                StringCredentials.class,
+                connectorConfig.getCloudCredentialsId(),
+                null);
+            CredentialsProvider.track(run, credentials);
+            return Authentication.builder()
+                .apiKey(Secret.toString(credentials.getSecret()))
+                .build();
+        }
     }
 
     @Symbol("venafiVcertRequestCertificate")
