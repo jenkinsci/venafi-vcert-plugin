@@ -231,52 +231,28 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
         throws InterruptedException, IOException
     {
-        ConnectorConfig connectorConfig = PluginConfig.get()
-            .getConnectorConfigByName(getConnectorName());
-        if (connectorConfig == null) {
-            throw new AbortException("No Venafi VCert connector configuration with name '"
-                + getConnectorName() + "' found");
-        }
+        ConnectorConfig connectorConfig = getConnectorConfig();
+        VCertClient client = createClient(run, connectorConfig);
+        ZoneConfiguration zoneConfig = readZoneConfig(client);
 
-        try {
-            Config sdkConfig = createSdkConfig(connectorConfig);
-            Authentication sdkAuth = createSdkAuthObject(run, connectorConfig);
-            VCertClient client = new VCertClient(sdkConfig);
-            client.authenticate(sdkAuth);
+        CertificateRequest certReq = new CertificateRequest();
+        certReq
+            .keyType(getKeyType())
+            .dnsNames(getAsList(getDnsNames()))
+            .ipAddresses(getIpAddressesAsInetAddresses())
+            .emailAddresses(getAsList(getEmailAddresses()));
+        certReq.subject(
+            new CertificateRequest.PKIXName()
+                .commonName(getCommonName())
+                .organization(getAsList(getOrganization()))
+                .organizationalUnit(getAsList(getOrganizationalUnit()))
+                .country(getAsList(getCountry()))
+                .locality(getAsList(getLocality()))
+                .province(getAsList(getProvince())));
 
-            ZoneConfiguration zoneConfig = client.readZoneConfiguration(getZoneConfigName());
-
-            CertificateRequest certReq = new CertificateRequest();
-            certReq
-                .keyType(getKeyType())
-                .dnsNames(getAsList(getDnsNames()))
-                .ipAddresses(getIpAddressesAsInetAddresses())
-                .emailAddresses(getAsList(getEmailAddresses()));
-            certReq.subject(
-                new CertificateRequest.PKIXName()
-                    .commonName(getCommonName())
-                    .organization(getAsList(getOrganization()))
-                    .organizationalUnit(getAsList(getOrganizationalUnit()))
-                    .country(getAsList(getCountry()))
-                    .locality(getAsList(getLocality()))
-                    .province(getAsList(getProvince())));
-
-            certReq = client.generateRequest(zoneConfig, certReq);
-            client.requestCertificate(certReq, zoneConfig);
-
-            PEMCollection pemCollection = client.retrieveCertificate(certReq);
-
-            FilePath privKeyOutputFile = workspace.child(getPrivKeyOutput());
-            privKeyOutputFile.write(pemCollection.pemPrivateKey(), "UTF-8");
-            privKeyOutputFile.chmod(0600);
-
-            workspace.child(getCertOutput()).write(
-                pemCollection.pemCertificate(), "UTF-8");
-            workspace.child(getCertChainOutput()).write(
-                pemCollection.pemCertificateChain(), "UTF-8");
-        } catch (VCertException e) {
-            throw new AbortException("VCert error: " + e.getMessage());
-        }
+        certReq = requestCertificate(connectorConfig, client, zoneConfig, certReq);
+        PEMCollection pemCollection = retrieveCertificate(connectorConfig, client, certReq);
+        writeOutputFiles(workspace, pemCollection);
     }
 
     private List<String> getAsList(String value) {
@@ -335,6 +311,91 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
         }
     }
 
+    private ConnectorConfig getConnectorConfig() throws AbortException {
+        ConnectorConfig result = PluginConfig.get()
+            .getConnectorConfigByName(getConnectorName());
+        if (result == null) {
+            throw new AbortException("No Venafi VCert connector configuration with name '"
+                + getConnectorName() + "' found");
+        } else {
+            return result;
+        }
+    }
+
+    private VCertClient createClient(Run<?, ?> run, ConnectorConfig connectorConfig) throws AbortException {
+        Config sdkConfig = createSdkConfig(connectorConfig);
+        Authentication sdkAuth = createSdkAuthObject(run, connectorConfig);
+        VCertClient client;
+        try {
+            client = new VCertClient(sdkConfig);
+        } catch (VCertException e) {
+            throw new AbortException("Error creating VCert client: "
+                + e.getMessage());
+        }
+        try {
+            client.authenticate(sdkAuth);
+        } catch (VCertException e) {
+            throw new AbortException("Error authenticating VCert: "
+                + e.getMessage());
+        }
+        return client;
+    }
+
+    private ZoneConfiguration readZoneConfig(VCertClient client) throws AbortException {
+        try {
+            return client.readZoneConfiguration(getZoneConfigName());
+        } catch (VCertException e) {
+            throw new AbortException("Error reading VCert zone configuration: "
+                + e.getMessage());
+        }
+    }
+
+    private CertificateRequest requestCertificate(ConnectorConfig connectorConfig, VCertClient client,
+        ZoneConfiguration zoneConfig, CertificateRequest certReq) throws AbortException
+    {
+        try {
+            certReq = client.generateRequest(zoneConfig, certReq);
+        } catch (VCertException e) {
+            throw new AbortException("Error generating certificate request: "
+                + e.getMessage());
+        }
+
+        try {
+            client.requestCertificate(certReq, zoneConfig);
+        } catch (VCertException e) {
+            throw new AbortException("Error requesting certificate from VCert "
+                + connectorConfig.getType() + ": "
+                + e.getMessage());
+        }
+
+        return certReq;
+    }
+
+    private PEMCollection retrieveCertificate(ConnectorConfig connectorConfig, VCertClient client,
+        CertificateRequest certReq) throws AbortException
+    {
+        try {
+            return client.retrieveCertificate(certReq);
+        } catch (VCertException e) {
+            throw new AbortException("Error retrieving certificate from VCert "
+                + connectorConfig.getType() + ": "
+                + e.getMessage());
+        }
+    }
+
+    private void writeOutputFiles(FilePath workspace, PEMCollection pemCollection)
+        throws InterruptedException, IOException
+    {
+        FilePath privKeyOutputFile = workspace.child(getPrivKeyOutput());
+        privKeyOutputFile.write(pemCollection.pemPrivateKey(), "UTF-8");
+        privKeyOutputFile.chmod(0600);
+
+        workspace.child(getCertOutput()).write(
+            pemCollection.pemCertificate(), "UTF-8");
+        workspace.child(getCertChainOutput()).write(
+            pemCollection.pemCertificateChain(), "UTF-8");
+    }
+
     @Symbol("venafiVcertRequestCertificate")
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
@@ -361,7 +422,7 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
             return FormValidation.validateRequired(value);
         }
 
-        public FormValidation doCheckZoneConfig(@QueryParameter String value) {
+        public FormValidation doCheckZoneConfigName(@QueryParameter String value) {
             return FormValidation.validateRequired(value);
         }
 
