@@ -330,13 +330,13 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
             client = new VCertClient(sdkConfig);
         } catch (VCertException e) {
             throw new AbortException("Error creating VCert client: "
-                + e.getMessage());
+                + getUsefulVCertExceptionMessage(e));
         }
         try {
             client.authenticate(sdkAuth);
         } catch (VCertException e) {
             throw new AbortException("Error authenticating VCert: "
-                + e.getMessage());
+                + getUsefulVCertExceptionMessage(e));
         }
         return client;
     }
@@ -346,7 +346,7 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
             return client.readZoneConfiguration(getZoneConfigName());
         } catch (VCertException e) {
             throw new AbortException("Error reading VCert zone configuration: "
-                + e.getMessage());
+                + getUsefulVCertExceptionMessage(e));
         }
     }
 
@@ -357,7 +357,7 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
             certReq = client.generateRequest(zoneConfig, certReq);
         } catch (VCertException e) {
             throw new AbortException("Error generating certificate request: "
-                + e.getMessage());
+                + getUsefulVCertExceptionMessage(e));
         }
 
         try {
@@ -365,7 +365,7 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
         } catch (VCertException e) {
             throw new AbortException("Error requesting certificate from VCert "
                 + connectorConfig.getType() + ": "
-                + e.getMessage());
+                + getUsefulVCertExceptionMessage(e));
         }
 
         return certReq;
@@ -379,7 +379,7 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
         } catch (VCertException e) {
             throw new AbortException("Error retrieving certificate from VCert "
                 + connectorConfig.getType() + ": "
-                + e.getMessage());
+                + getUsefulVCertExceptionMessage(e));
         }
     }
 
@@ -394,6 +394,14 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
             pemCollection.pemCertificate(), "UTF-8");
         workspace.child(getCertChainOutput()).write(
             pemCollection.pemCertificateChain(), "UTF-8");
+    }
+
+    private String getUsefulVCertExceptionMessage(VCertException e) {
+        if (e.getMessage().equals("Unexpected exception") && e.getCause() != null) {
+            return e.getCause().getMessage();
+        } else {
+            return e.getMessage();
+        }
     }
 
     @Symbol("venafiVcertRequestCertificate")
