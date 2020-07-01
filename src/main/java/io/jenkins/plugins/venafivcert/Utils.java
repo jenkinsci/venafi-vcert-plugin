@@ -1,8 +1,6 @@
 package io.jenkins.plugins.venafivcert;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -28,16 +26,5 @@ public class Utils {
                 ACL.SYSTEM,
                 Collections.emptyList()),
             CredentialsMatchers.withId(credentialsId));
-    }
-
-    public static List<String> parseStringAsNewlineDelimitedList(String input) {
-        List<String> result = new ArrayList<String>();
-        for (String line: input.split("\\s+")) {
-            line = line.trim();
-            if (!line.isEmpty()) {
-                result.add(line);
-            }
-        }
-        return result;
     }
 }
