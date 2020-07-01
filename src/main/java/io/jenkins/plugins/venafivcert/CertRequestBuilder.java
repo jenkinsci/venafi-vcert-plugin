@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
@@ -43,26 +45,24 @@ import hudson.util.Secret;
 import jenkins.tasks.SimpleBuildStep;
 
 public class CertRequestBuilder extends Builder implements SimpleBuildStep {
-    @SuppressFBWarnings("UUF_UNUSED_FIELD")
-    private String connectorName;
-
-    @SuppressFBWarnings("UUF_UNUSED_FIELD")
-    private String zoneConfigName;
+    private final String connectorName;
+    private final String zoneConfigName;
+    private final String commonName;
+    private final String privKeyOutput;
+    private final String certOutput;
+    private final String certChainOutput;
 
     @SuppressFBWarnings("UUF_UNUSED_FIELD")
     private KeyType keyType;
 
     @SuppressFBWarnings("UUF_UNUSED_FIELD")
-    private String dnsNames;
+    private List<DnsName> dnsNames;
 
     @SuppressFBWarnings("UUF_UNUSED_FIELD")
-    private String ipAddresses;
+    private List<IpAddress> ipAddresses;
 
     @SuppressFBWarnings("UUF_UNUSED_FIELD")
-    private String emailAddresses;
-
-    @SuppressFBWarnings("UUF_UNUSED_FIELD")
-    private String commonName;
+    private List<EmailAddress> emailAddresses;
 
     @SuppressFBWarnings("UUF_UNUSED_FIELD")
     private String organization;
@@ -79,35 +79,24 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     @SuppressFBWarnings("UUF_UNUSED_FIELD")
     private String country;
 
-    @SuppressFBWarnings("UUF_UNUSED_FIELD")
-    private String privKeyOutput;
-
-    @SuppressFBWarnings("UUF_UNUSED_FIELD")
-    private String certOutput;
-
-    @SuppressFBWarnings("UUF_UNUSED_FIELD")
-    private String certChainOutput;
-
     @DataBoundConstructor
-    public CertRequestBuilder() {
+    public CertRequestBuilder(String connectorName, String zoneConfigName, String commonName,
+        String privKeyOutput, String certOutput, String certChainOutput)
+    {
+        this.connectorName = connectorName;
+        this.zoneConfigName = zoneConfigName;
+        this.commonName = commonName;
+        this.privKeyOutput = privKeyOutput;
+        this.certOutput = certOutput;
+        this.certChainOutput = certChainOutput;
     }
 
     public String getConnectorName() {
         return connectorName;
     }
 
-    @DataBoundSetter
-    public void setConnectorName(String value) {
-        this.connectorName = value;
-    }
-
     public String getZoneConfigName() {
         return zoneConfigName;
-    }
-
-    @DataBoundSetter
-    public void setZoneConfigName(String value) {
-        this.zoneConfigName = value;
     }
 
     public KeyType getKeyType() {
@@ -119,40 +108,47 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
         this.keyType = value;
     }
 
-    public String getDnsNames() {
-        return dnsNames;
+    public List<DnsName> getDnsNames() {
+        if (dnsNames == null) {
+            return Collections.emptyList();
+        } else {
+            return dnsNames;
+        }
     }
 
     @DataBoundSetter
-    public void setDnsNames(String value) {
+    public void setDnsNames(List<DnsName> value) {
         this.dnsNames = value;
     }
 
-    public String getIpAddresses() {
-        return ipAddresses;
+    public List<IpAddress> getIpAddresses() {
+        if (ipAddresses == null) {
+            return Collections.emptyList();
+        } else {
+            return ipAddresses;
+        }
     }
 
     @DataBoundSetter
-    public void setIpAddresses(String value) {
+    public void setIpAddresses(List<IpAddress> value) {
         this.ipAddresses = value;
     }
 
-    public String getEmailAddresses() {
-        return emailAddresses;
+    public List<EmailAddress> getEmailAddresses() {
+        if (emailAddresses == null) {
+            return Collections.emptyList();
+        } else {
+            return emailAddresses;
+        }
     }
 
     @DataBoundSetter
-    public void setEmailAddresses(String value) {
+    public void setEmailAddresses(List<EmailAddress> value) {
         this.emailAddresses = value;
     }
 
     public String getCommonName() {
         return commonName;
-    }
-
-    @DataBoundSetter
-    public void setCommonName(String value) {
-        this.commonName = value;
     }
 
     public String getOrganization() {
@@ -204,27 +200,12 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
         return privKeyOutput;
     }
 
-    @DataBoundSetter
-    public void setPrivKeyOutput(String value) {
-        this.privKeyOutput = value;
-    }
-
     public String getCertOutput() {
         return certOutput;
     }
 
-    @DataBoundSetter
-    public void setCertOutput(String certOutput) {
-        this.certOutput = certOutput;
-    }
-
     public String getCertChainOutput() {
         return certChainOutput;
-    }
-
-    @DataBoundSetter
-    public void setCertChainOutput(String certChainOutput) {
-        this.certChainOutput = certChainOutput;
     }
 
     @Override
@@ -238,29 +219,33 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
         CertificateRequest certReq = new CertificateRequest();
         certReq
             .keyType(getKeyType())
-            .dnsNames(getAsList(getDnsNames()))
+            .dnsNames(getDnsNamesAsStrings())
             .ipAddresses(getIpAddressesAsInetAddresses())
-            .emailAddresses(getAsList(getEmailAddresses()));
+            .emailAddresses(getEmailAddressesAsStrings());
         certReq.subject(
             new CertificateRequest.PKIXName()
                 .commonName(getCommonName())
-                .organization(getAsList(getOrganization()))
-                .organizationalUnit(getAsList(getOrganizationalUnit()))
-                .country(getAsList(getCountry()))
-                .locality(getAsList(getLocality()))
-                .province(getAsList(getProvince())));
+                .organization(Arrays.asList(getOrganization()))
+                .organizationalUnit(Arrays.asList(getOrganizationalUnit()))
+                .country(Arrays.asList(getCountry()))
+                .locality(Arrays.asList(getLocality()))
+                .province(Arrays.asList(getProvince())));
 
         certReq = requestCertificate(connectorConfig, client, zoneConfig, certReq);
         PEMCollection pemCollection = retrieveCertificate(connectorConfig, client, certReq);
         writeOutputFiles(workspace, pemCollection);
     }
 
-    private List<String> getAsList(String value) {
-        if (value == null) {
-            return Collections.emptyList();
-        } else {
-            return Utils.parseStringAsNewlineDelimitedList(value);
-        }
+    private List<String> getDnsNamesAsStrings() {
+        return getDnsNames().stream()
+            .map(el -> el.getHostName())
+            .collect(Collectors.toList());
+    }
+
+    private List<String> getEmailAddressesAsStrings() {
+        return getEmailAddresses().stream()
+            .map(el -> el.getAddress())
+            .collect(Collectors.toList());
     }
 
     private Collection<InetAddress> getIpAddressesAsInetAddresses()
@@ -268,8 +253,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     {
         try {
             Collection<InetAddress> result = new ArrayList<InetAddress>();
-            for (String ipAddr: getAsList(getIpAddresses())) {
-                result.add(InetAddress.getByName(ipAddr));
+            for (IpAddress ipAddr: getIpAddresses()) {
+                result.add(InetAddress.getByName(ipAddr.getAddress()));
             }
             return result;
         } catch (UnknownHostException e) {

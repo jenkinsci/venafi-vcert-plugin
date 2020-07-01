@@ -13,13 +13,13 @@
     </f:entry>
 
     <f:entry title="${%DNS names}" field="dnsNames">
-        <f:expandableTextbox />
+        <f:repeatableProperty field="dnsNames" />
     </f:entry>
     <f:entry title="${%IP addresses}" field="ipAddresses">
-        <f:expandableTextbox />
+        <f:repeatableProperty field="ipAddresses" />
     </f:entry>
     <f:entry title="${%Email addresses}" field="emailAddresses">
-        <f:expandableTextbox />
+        <f:repeatableProperty field="emailAddresses" />
     </f:entry>
 
     <f:section title="${%Subject}">
