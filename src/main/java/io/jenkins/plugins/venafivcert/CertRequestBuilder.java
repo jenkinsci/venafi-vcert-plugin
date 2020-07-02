@@ -19,7 +19,7 @@ import com.venafi.vcert.sdk.Config.ConfigBuilder;
 import com.venafi.vcert.sdk.certificate.CertificateRequest;
 import com.venafi.vcert.sdk.certificate.KeyType;
 import com.venafi.vcert.sdk.certificate.PEMCollection;
-import com.venafi.vcert.sdk.connectors.tpp.ZoneConfiguration;
+import com.venafi.vcert.sdk.connectors.ZoneConfiguration;
 import com.venafi.vcert.sdk.endpoint.Authentication;
 import com.venafi.vcert.sdk.endpoint.ConnectorType;
 
