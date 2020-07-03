@@ -10,7 +10,7 @@ import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.util.FormValidation;
 
-@XStreamAlias("dns-name")
+@XStreamAlias("email-address")
 public class EmailAddress extends AbstractDescribableImpl<EmailAddress> {
     private final String address;
 
