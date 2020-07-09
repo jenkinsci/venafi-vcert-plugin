@@ -17,7 +17,7 @@
         <workflow.version>2.0</workflow.version>
     </properties>
 
-    <name>Venafi TLS Protect</name>
+    <name>Venafi Machine Identity Protection</name>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>

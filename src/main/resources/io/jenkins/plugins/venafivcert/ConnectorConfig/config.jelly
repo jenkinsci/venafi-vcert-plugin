@@ -10,7 +10,7 @@
         </f:enum>
     </f:entry>
 
-    <f:section title="${%TPP configuration}">
+    <f:section title="${%TLS Protect configuration}">
         <f:entry title="${%Base URL}" field="tppBaseUrl">
             <f:textbox />
         </f:entry>
@@ -20,7 +20,7 @@
         </f:entry>
     </f:section>
 
-    <f:section title="${%Cloud configuration}">
+    <f:section title="${%DevOpsACCELERATE configuration}">
         <f:entry title="${%API key}" field="cloudCredentialsId">
             <c:select context="${app}" includeUser="false" expressionAllowed="false" />
         </f:entry>
