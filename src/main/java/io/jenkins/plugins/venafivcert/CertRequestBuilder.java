@@ -266,6 +266,7 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     private Config createSdkConfig(ConnectorConfig connectorConfig) {
         ConfigBuilder sdkConfig = Config.builder();
         sdkConfig.connectorType(connectorConfig.getType());
+        sdkConfig.appInfo(Messages.apiVendorAndProductName());
         if (connectorConfig.getType() == ConnectorType.TPP) {
             sdkConfig.baseUrl(connectorConfig.getTppBaseUrl());
         }
