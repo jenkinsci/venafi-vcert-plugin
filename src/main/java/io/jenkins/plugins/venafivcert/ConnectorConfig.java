@@ -8,7 +8,6 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.venafi.vcert.sdk.endpoint.ConnectorType;
 
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.AncestorInPath;
@@ -152,7 +151,7 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
 
         public FormValidation doCheckTppBaseUrl(@QueryParameter String value, @QueryParameter String type) {
             ConnectorType cType = ConnectorType.valueOf(type);
-            if (cType == ConnectorType.TPP) {
+            if (cType == ConnectorType.TLS_PROTECT) {
                 return FormValidation.validateRequired(value);
             } else {
                 return FormValidation.ok();
@@ -162,7 +161,7 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
         public FormValidation doCheckTppCredentialsId(@AncestorInPath Item item, @QueryParameter String value,
             @QueryParameter ConnectorType type)
         {
-            if (type != ConnectorType.TPP) {
+            if (type != ConnectorType.TLS_PROTECT) {
                 return FormValidation.ok();
             }
 
@@ -187,7 +186,7 @@ public class ConnectorConfig extends AbstractDescribableImpl<ConnectorConfig> {
         public FormValidation doCheckCloudCredentialsId(@AncestorInPath Item item, @QueryParameter String value,
             @QueryParameter ConnectorType type)
         {
-            if (type != ConnectorType.CLOUD) {
+            if (type != ConnectorType.DEVOPS_ACCELERATE) {
                 return FormValidation.ok();
             }
 

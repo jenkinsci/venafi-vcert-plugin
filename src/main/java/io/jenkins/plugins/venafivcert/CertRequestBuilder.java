@@ -21,7 +21,6 @@ import com.venafi.vcert.sdk.certificate.KeyType;
 import com.venafi.vcert.sdk.certificate.PEMCollection;
 import com.venafi.vcert.sdk.connectors.ZoneConfiguration;
 import com.venafi.vcert.sdk.endpoint.Authentication;
-import com.venafi.vcert.sdk.endpoint.ConnectorType;
 
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
@@ -265,16 +264,16 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
 
     private Config createSdkConfig(ConnectorConfig connectorConfig) {
         ConfigBuilder sdkConfig = Config.builder();
-        sdkConfig.connectorType(connectorConfig.getType());
+        sdkConfig.connectorType(connectorConfig.getType().getVCertConnectorType());
         sdkConfig.appInfo(Messages.apiVendorAndProductName());
-        if (connectorConfig.getType() == ConnectorType.TPP) {
+        if (connectorConfig.getType() == ConnectorType.TLS_PROTECT) {
             sdkConfig.baseUrl(connectorConfig.getTppBaseUrl());
         }
         return sdkConfig.build();
     }
 
     private Authentication createSdkAuthObject(Run<?, ?> run, ConnectorConfig connectorConfig) {
-        if (connectorConfig.getType() == ConnectorType.TPP) {
+        if (connectorConfig.getType() == ConnectorType.TLS_PROTECT) {
             StandardUsernamePasswordCredentials credentials = Utils.findCredentials(
                 StandardUsernamePasswordCredentials.class,
                 connectorConfig.getTppCredentialsId(),
@@ -285,7 +284,7 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
                 .password(Secret.toString(credentials.getPassword()))
                 .build();
         } else {
-            assert connectorConfig.getType() == ConnectorType.CLOUD;
+            assert connectorConfig.getType() == ConnectorType.DEVOPS_ACCELERATE;
             StringCredentials credentials = Utils.findCredentials(
                 StringCredentials.class,
                 connectorConfig.getCloudCredentialsId(),
