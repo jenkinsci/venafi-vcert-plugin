@@ -4,7 +4,7 @@ This plugin integrates [Venafi Machine Identity Protection](https://support.vena
 
 ## Setup & usage overview
 
-You must already have access to one or more Venafi VCert connectors. This could either be a Venafi Trust Protection Platform™ (TPP), or Venafi Cloud. Configure the connectors you have, and their credentials, in Manage Jenkins ➜ Configure System ➜ Venafi Machine Identity Protection.
+You must already have access to either Venafi TLS Protect (part of the Venafi Trust Protection Platform™), or Venafi DevOpsACCELERATE (part of Venafi Cloud). Configure their credentials and other parameters, in Manage Jenkins ➜ Configure System ➜ Venafi Machine Identity Protection.
 
 Once the connectors are set up, you are ready to proceed with main usage: see [Build steps & pipeline functions](#build-steps-pipeline-functions).
 
