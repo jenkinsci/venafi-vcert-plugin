@@ -37,7 +37,7 @@ venafiVcertRequestCertificate connectorName: 'Venafi Cloud',
 
 Required:
 
- * `connectorName`: The Venafi VCert connector to use.
+ * `connectorName`: The Venafi connector to use.
  * `keyType`: either 'RSA' or 'ECDSA'.
  * `zoneConfigName`: the name of the zone configuration to use.
 
@@ -73,7 +73,7 @@ Required:
 
  * `commonName`: the certificate's common name.
 
-Required or optional, depending on the VCert connector zone configuration:
+Required or optional, depending on the connector's zone configuration:
 
  * `organization`
  * `organizationalUnit`
