@@ -29,20 +29,20 @@
 
     <!-- If you want this to appear on the wiki page: -->
     <developers>
-      <developer>
-        <id>avwsolutions</id>
-        <name>Arnold van Wijnbergen</name>
-        <email>a.vanwijnbergen@fullstaq.com</email>
-        <organization>Fullstaq</organization>
-        <organizationUrl>https://fullstaq.com</organizationUrl>
-      </developer>
-      <developer>
-        <id>FooBarWidget</id>
-        <name>Hongli Lai</name>
-        <email>h.lai@fullstaq.com</email>
-        <organization>Fullstaq</organization>
-        <organizationUrl>https://fullstaq.com</organizationUrl>
-      </developer>
+        <developer>
+            <id>avwsolutions</id>
+            <name>Arnold van Wijnbergen</name>
+            <email>a.vanwijnbergen@fullstaq.com</email>
+            <organization>Fullstaq</organization>
+            <organizationUrl>https://fullstaq.com</organizationUrl>
+        </developer>
+        <developer>
+            <id>FooBarWidget</id>
+            <name>Hongli Lai</name>
+            <email>h.lai@fullstaq.com</email>
+            <organization>Fullstaq</organization>
+            <organizationUrl>https://fullstaq.com</organizationUrl>
+        </developer>
     </developers>
 
     <build>
