@@ -100,6 +100,11 @@
             <artifactId>workflow-job</artifactId>
             <version>2.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.11</version>
+        </dependency>
 
         <!-- Dependencies for allowing inspection with IntelliSense.
              Keep them commented out; only temporarily uncomment them
