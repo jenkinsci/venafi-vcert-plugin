@@ -14,3 +14,11 @@ To start a development Jenkins instance with this plugin loaded, run:
 ~~~
 
 You can then access Jenkins on http://127.0.0.1:8080/jenkins/
+
+## Release
+
+~~~bash
+mvn release:prepare
+mvn release:perform
+git push
+~~~
