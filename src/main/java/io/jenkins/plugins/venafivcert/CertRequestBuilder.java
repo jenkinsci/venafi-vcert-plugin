@@ -1,14 +1,22 @@
 package io.jenkins.plugins.venafivcert;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
@@ -33,6 +41,7 @@ import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -77,6 +86,9 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
 
     @SuppressFBWarnings("UUF_UNUSED_FIELD")
     private String country;
+
+    @SuppressFBWarnings("UUF_UNUSED_FIELD")
+    private int expirationWindow;
 
     @DataBoundConstructor
     public CertRequestBuilder(String connectorName, String zoneConfigName, String commonName,
@@ -150,6 +162,15 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
         return commonName;
     }
 
+    public int getExpirationWindow() {
+        return expirationWindow;
+    }
+
+    @DataBoundSetter
+    public void setExpirationWindow(int value) {
+        expirationWindow = value;
+    }
+
     public String getOrganization() {
         return organization;
     }
@@ -208,9 +229,26 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     }
 
     @Override
-    public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
-        throws InterruptedException, IOException
+    public void perform(@Nonnull Run<?,?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
+        @Nonnull TaskListener listener) throws InterruptedException, IOException
     {
+        Logger logger = new Logger(listener.getLogger(), Messages.CertRequestBuilder_functionName());
+        ZonedDateTime expirationTime;
+
+        try {
+            expirationTime = getPrevCertExpirationTime(workspace);
+        } catch (InterruptedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AbortException("Error reading existing certificate's value: " + e.getMessage());
+        }
+
+        if (!withinRenewalWindow(logger, expirationTime)) {
+            logger.log("Previous certificate's expiry time (%s) is not within the renewal window of %d hours." +
+                " Not requesting a certificate.", expirationTime, getExpirationWindow());
+            return;
+        }
+
         ConnectorConfig connectorConfig = getConnectorConfig();
         VCertClient client = createClient(run, connectorConfig);
         ZoneConfiguration zoneConfig = readZoneConfig(client);
@@ -233,6 +271,40 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
         certReq = requestCertificate(connectorConfig, client, zoneConfig, certReq);
         PEMCollection pemCollection = retrieveCertificate(connectorConfig, client, certReq);
         writeOutputFiles(workspace, pemCollection);
+    }
+
+    private boolean withinRenewalWindow(Logger logger, ZonedDateTime expirationTime) throws AbortException {
+        if (expirationWindow == 0) {
+            return true;
+        } if (expirationWindow < 0) {
+            throw new AbortException("expirationWindow may not be a negative number");
+        } else if (expirationTime == null) {
+            logger.log("An expirationWindow is configured, but the previous certificate (%s) does not exist." +
+                " Will proceed with requesting a new certificate.", getCertOutput());
+            return true;
+        } else {
+            boolean result = ZonedDateTime.now().isAfter(expirationTime.minusHours(expirationWindow));
+            if (result) {
+                logger.log("Previous certificate's expiry time (%s) is within the renewal window of %d hours." +
+                    " Will proceed with requesting a certificate.", expirationTime, getExpirationWindow());
+            }
+            return result;
+        }
+    }
+
+    private ZonedDateTime getPrevCertExpirationTime(FilePath workspace)
+        throws IOException, InterruptedException, CertificateException
+    {
+        FilePath certPath = workspace.child(getCertOutput());
+        if (!certPath.exists()) {
+            return null;
+        }
+
+        CertificateFactory fact = CertificateFactory.getInstance("X.509");
+        try (InputStream input = certPath.read()) {
+            X509Certificate cert = (X509Certificate) fact.generateCertificate(input);
+            return ZonedDateTime.ofInstant(cert.getNotAfter().toInstant(), ZoneId.systemDefault());
+        }
     }
 
     private List<String> getDnsNamesAsStrings() {
@@ -425,6 +497,22 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
 
         public FormValidation doCheckCertChainOutput(@QueryParameter String value) {
             return FormValidation.validateRequired(value);
+        }
+
+        public FormValidation doCheckExpirationWindow(@QueryParameter String value) {
+            if (Util.fixEmptyAndTrim(value) == null) {
+                return FormValidation.ok();
+            }
+
+            try {
+                int n = Integer.parseInt(value);
+                if (n < 0) {
+                    return FormValidation.error(Messages.CertRequestBuilder_atLeastZeroNumberRequired());
+                }
+                return FormValidation.ok();
+            } catch (NumberFormatException e) {
+                return FormValidation.error(Messages.CertRequestBuilder_invalidNumber());
+            }
         }
     }
 }
