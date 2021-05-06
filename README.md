@@ -93,7 +93,7 @@ Required:
 
 ## Renewing certificate only when expiration is near
 
-Normally, `venafiVcertRequestCertificate` requests a certificate every time it's called. Sometimes you only want to request a certificate when it's about to expiry. The `expirationWindow` parameter addresses this use case.
+Normally, `venafiVcertRequestCertificate` requests a certificate every time it's called. Sometimes you only want to request a certificate when it's about to expire. The `expirationWindow` parameter addresses this use case.
 
 `expirationWindow` expects that you fetch the previously generated certificate, and store it under the same path as specified by `certOutput`. The `expirationWindow` feature will then check whether that file's expiry date is within `expirationWindow` hours. If so, or if there is no previously generated certificate, then it'll proceed with requesting a new certificate. Otherwise it does nothing, and logs this decision.
 

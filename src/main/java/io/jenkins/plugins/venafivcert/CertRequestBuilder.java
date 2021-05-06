@@ -243,8 +243,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
             throw new AbortException("Error reading existing certificate's value: " + e.getMessage());
         }
 
-        if (!withinRenewalWindow(logger, expirationTime)) {
-            logger.log("Previous certificate's expiry time (%s) is not within the renewal window of %d hours." +
+        if (!withinExpirationWindow(logger, expirationTime)) {
+            logger.log("Previous certificate's expiry time (%s) is not within the expiration window of %d hours." +
                 " Not requesting a certificate.", expirationTime, getExpirationWindow());
             return;
         }
@@ -273,10 +273,10 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
         writeOutputFiles(workspace, pemCollection);
     }
 
-    private boolean withinRenewalWindow(Logger logger, ZonedDateTime expirationTime) throws AbortException {
+    private boolean withinExpirationWindow(Logger logger, ZonedDateTime expirationTime) throws AbortException {
         if (expirationWindow == 0) {
             return true;
-        } if (expirationWindow < 0) {
+        } else if (expirationWindow < 0) {
             throw new AbortException("expirationWindow may not be a negative number");
         } else if (expirationTime == null) {
             logger.log("An expirationWindow is configured, but the previous certificate (%s) does not exist." +
@@ -285,7 +285,7 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
         } else {
             boolean result = ZonedDateTime.now().isAfter(expirationTime.minusHours(expirationWindow));
             if (result) {
-                logger.log("Previous certificate's expiry time (%s) is within the renewal window of %d hours." +
+                logger.log("Previous certificate's expiry time (%s) is within the expiration window of %d hours." +
                     " Will proceed with requesting a certificate.", expirationTime, getExpirationWindow());
             }
             return result;
