@@ -1,10 +1,10 @@
-# Venafi Machine Identity Protection plugin for Jenkins
+# Venafi Machine Identity Management plugin for Jenkins
 
-This plugin integrates [Venafi Machine Identity Protection](https://support.venafi.com/hc/en-us/articles/217991528-Introducing-VCert-API-Abstraction-for-DevOps) with Jenkins-based CI/CD processes.
+This plugin integrates [Venafi Machine Identity Management](https://support.venafi.com/hc/en-us/articles/217991528-Introducing-VCert-API-Abstraction-for-DevOps), formerly known as Venafi Machine Identity Protection with Jenkins-based CI/CD processes.
 
 ## Setup & usage overview
 
-You must already have access to either Venafi TLS Protect (part of the Venafi Trust Protection Platform™), or Venafi DevOpsACCELERATE (part of Venafi Cloud). Configure their credentials and other parameters, in Manage Jenkins ➜ Configure System ➜ Venafi Machine Identity Protection.
+You must already have access to either Venafi TLS Protect (part of the Venafi Trust Protection Platform™) or Venafi as a Service (formerly Venafi Cloud). Configure their credentials and other parameters, in Manage Jenkins ➜ Configure System ➜ Venafi Machine Identity Protection.
 
 Once the connectors are set up, you are ready to proceed with main usage: see [Build steps & pipeline functions](#build-steps-pipeline-functions).
 
@@ -12,7 +12,7 @@ Once the connectors are set up, you are ready to proceed with main usage: see [B
 
 All operations listed here are compatible with both freestyle projects (Build steps) as well as pipeline projects (Pipeline functions).
 
-### Venafi Machine Identity Protection: request certificate (`venafiVcertRequestCertificate`)
+### Venafi Machine Identity Management: request certificate (`venafiVcertRequestCertificate`)
 
 Requests a pair of certificate + private key. The output is to be written to the specified files, in PEM format.
 
