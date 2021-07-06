@@ -1,6 +1,6 @@
 # Venafi Machine Identity Management plugin for Jenkins
 
-This plugin integrates [Venafi Machine Identity Management](https://support.venafi.com/hc/en-us/articles/217991528-Introducing-VCert-API-Abstraction-for-DevOps), formerly known as Venafi Machine Identity Protection with Jenkins-based CI/CD processes.
+This plugin integrates [Venafi Machine Identity Management](https://support.venafi.com/hc/en-us/articles/217991528-Introducing-VCert-API-Abstraction-for-DevOps) (formerly known as Venafi Machine Identity Protection) with Jenkins-based CI/CD processes.
 
 ## Setup & usage overview
 
@@ -8,7 +8,7 @@ You must already have access to either Venafi TLS Protect (part of the Venafi Tr
 
  1. Setup Jenkins:
      1. Go to Jenkins.
-     2. Go to Manage Jenkins ➜ Configure System ➜ Venafi Machine Identity Protection.
+     2. Go to Manage Jenkins ➜ Configure System ➜ Venafi Machine Identity Management.
      3. Configure the TPP or Venafi as a Service connection parameters.
  2. (Only when using a TPP; not applicable to Venafi as a Service:) Setup an API Application Integration.
      1. Go to your TPP's Aperture web interface.
@@ -44,7 +44,7 @@ Requests a pair of certificate + private key. The output is to be written to the
 #### Example pipeline usage
 
 ~~~groovy
-venafiVcertRequestCertificate connectorName: 'Venafi Cloud',
+venafiVcertRequestCertificate connectorName: 'Venafi as a Service',
     zoneConfigName: 'Certificates\\VCert',
     keyType: 'RSA',
     commonName: 'yourdomain.com',
@@ -137,7 +137,7 @@ try {
 
 // Only request a new certificate if there is no previous certificate,
 // or if the previous certificate expires within 48 hours.
-venafiVcertRequestCertificate connectorName: 'Venafi Cloud',
+venafiVcertRequestCertificate connectorName: 'Venafi as a Service',
     zoneConfigName: 'Certificates\\VCert',
     keyType: 'RSA',
     commonName: 'yourdomain.com',

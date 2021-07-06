@@ -20,7 +20,7 @@
         </f:entry>
     </f:section>
 
-    <f:section title="${%DevOpsACCELERATE configuration}">
+    <f:section title="${%Venafi as a Service configuration}">
         <f:entry title="${%API key}" field="cloudCredentialsId">
             <c:select context="${app}" includeUser="false" expressionAllowed="false" />
         </f:entry>
