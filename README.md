@@ -41,6 +41,8 @@ Required:
  * `keyType`: either 'RSA' or 'ECDSA'.
  * `zoneConfigName`: the name of the zone configuration to use.
 
+   When using Venafi as a Service, zone names are in the format of `app name\api alias`
+
 Optional:
 
  * `dnsNames`: a list of DNS names, as part of the certificate's Alternative Subject Names.
