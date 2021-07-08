@@ -21,7 +21,6 @@ import javax.annotation.Nonnull;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.venafi.vcert.sdk.Config;
-import com.venafi.vcert.sdk.VCertClient;
 import com.venafi.vcert.sdk.VCertException;
 import com.venafi.vcert.sdk.Config.ConfigBuilder;
 import com.venafi.vcert.sdk.certificate.CertificateRequest;
@@ -53,6 +52,8 @@ import hudson.util.Secret;
 import jenkins.tasks.SimpleBuildStep;
 
 public class CertRequestBuilder extends Builder implements SimpleBuildStep {
+    public static final String OAUTH_SCOPE = "certificate:manage";
+
     private final String connectorName;
     private final String zoneConfigName;
     private final String commonName;
@@ -354,6 +355,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
             return Authentication.builder()
                 .user(credentials.getUsername())
                 .password(Secret.toString(credentials.getPassword()))
+                .scope(OAUTH_SCOPE)
+                .clientId(Messages.authClientID())
                 .build();
         } else {
             assert connectorConfig.getType() == ConnectorType.DEVOPS_ACCELERATE;
@@ -364,6 +367,8 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
             CredentialsProvider.track(run, credentials);
             return Authentication.builder()
                 .apiKey(Secret.toString(credentials.getSecret()))
+                .scope(OAUTH_SCOPE)
+                .clientId(Messages.authClientID())
                 .build();
         }
     }
@@ -382,20 +387,12 @@ public class CertRequestBuilder extends Builder implements SimpleBuildStep {
     private VCertClient createClient(Run<?, ?> run, ConnectorConfig connectorConfig) throws AbortException {
         Config sdkConfig = createSdkConfig(connectorConfig);
         Authentication sdkAuth = createSdkAuthObject(run, connectorConfig);
-        VCertClient client;
-        try {
-            client = new VCertClient(sdkConfig);
-        } catch (VCertException e) {
-            throw new AbortException("Error creating VCert client: "
-                + e.getMessage());
+        if (connectorConfig.getType() == ConnectorType.TLS_PROTECT) {
+            return new TokenVCertClient(sdkConfig, sdkAuth);
+        } else {
+            assert connectorConfig.getType() == ConnectorType.DEVOPS_ACCELERATE;
+            return new NormalVCertClient(sdkConfig, sdkAuth);
         }
-        try {
-            client.authenticate(sdkAuth);
-        } catch (VCertException e) {
-            throw new AbortException("Error authenticating VCert: "
-                + e.getMessage());
-        }
-        return client;
     }
 
     private ZoneConfiguration readZoneConfig(VCertClient client) throws AbortException {

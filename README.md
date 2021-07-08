@@ -4,9 +4,34 @@ This plugin integrates [Venafi Machine Identity Management](https://support.vena
 
 ## Setup & usage overview
 
-You must already have access to either Venafi TLS Protect (part of the Venafi Trust Protection Platform™) or Venafi as a Service (formerly Venafi Cloud). Configure their credentials and other parameters, in Manage Jenkins ➜ Configure System ➜ Venafi Machine Identity Protection.
+You must already have access to either Venafi TLS Protect (part of the Venafi Trust Protection Platform™) or Venafi as a Service (formerly Venafi Cloud).
 
-Once the connectors are set up, you are ready to proceed with main usage: see [Build steps & pipeline functions](#build-steps-pipeline-functions).
+ 1. Setup Jenkins:
+     1. Go to Jenkins.
+     2. Go to Manage Jenkins ➜ Configure System ➜ Venafi Machine Identity Protection.
+     3. Configure the TPP or Venafi as a Service connection parameters.
+ 2. (Only when using a TPP; not applicable to Venafi as a Service:) Setup an API Application Integration.
+     1. Go to your TPP's Aperture web interface.
+     2. Go the Platform product.
+     3. In the top navbar, click API ➜ API Application Integrations.
+     4. Click "New Application Integration".
+     5. Under "Type of Integration", select "Vendor Integration". Paste the following JSON:
+
+        ~~~json
+        {
+            "id": "fullstaq-vcert-jenkins",
+            "name": "Fullstaq VCert Jenkins",
+            "vendor": "Fullstaq B.V.",
+            "description": "Venafi Machine Identity Management plugin for Jenkins",
+            "scope": "certificate:manage"
+        }
+        ~~~
+
+        Then click Save.
+
+     6. Select the "Fullstaq VCert Jenkins" integration and click "Edit Access". Grant access to the TPP user account that you want to use from Jenkins.
+
+Once everything is set up, you are ready to proceed with main usage: see [Build steps & pipeline functions](#build-steps-pipeline-functions).
 
 ## Build steps & pipeline functions
 

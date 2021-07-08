@@ -1,7 +1,7 @@
 package io.jenkins.plugins.venafivcert;
 
 public enum ConnectorType {
-    TLS_PROTECT("TLS Protect", com.venafi.vcert.sdk.endpoint.ConnectorType.TPP),
+    TLS_PROTECT("TLS Protect", com.venafi.vcert.sdk.endpoint.ConnectorType.TPP_TOKEN),
     DEVOPS_ACCELERATE("DevOpsACCELERATE", com.venafi.vcert.sdk.endpoint.ConnectorType.CLOUD);
 
     private final String displayName;
