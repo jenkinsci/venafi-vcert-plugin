@@ -18,7 +18,7 @@
                 "background": {
                     "activeOnStart": true,
                     "beginsPattern": "^Building Venafi",
-                    "endsPattern": "^Jenkins home directory:"
+                    "endsPattern": "Jenkins home directory:"
                 }
             },
             "group": "build"
@@ -43,7 +43,7 @@
                 "background": {
                     "activeOnStart": true,
                     "beginsPattern": "^Building Venafi",
-                    "endsPattern": "^Jenkins home directory:"
+                    "endsPattern": "Jenkins home directory:"
                 }
             },
             "group": {
