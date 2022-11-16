@@ -19,9 +19,9 @@ You must already have access to either Venafi TLS Protect (part of the Venafi Tr
 
         ~~~json
         {
-            "id": "fullstaq-vcert-jenkins",
-            "name": "Fullstaq VCert Jenkins",
-            "vendor": "Fullstaq B.V.",
+            "id": "qensus-vcert-jenkins",
+            "name": "Qensus VCert Jenkins",
+            "vendor": "Qensus B.V.",
             "description": "Venafi Machine Identity Management plugin for Jenkins",
             "scope": "certificate:manage"
         }
@@ -29,7 +29,7 @@ You must already have access to either Venafi TLS Protect (part of the Venafi Tr
 
         Then click Save.
 
-     6. Select the "Fullstaq VCert Jenkins" integration and click "Edit Access". Grant access to the TPP user account that you want to use from Jenkins.
+     6. Select the "Qensus VCert Jenkins" integration and click "Edit Access". Grant access to the TPP user account that you want to use from Jenkins.
 
 Once everything is set up, you are ready to proceed with main usage: see [Build steps & pipeline functions](#build-steps-pipeline-functions).
 

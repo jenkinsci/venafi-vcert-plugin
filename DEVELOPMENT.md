@@ -4,7 +4,7 @@
 
 Requirements:
 
- * Java >= 8
+ * Java >= 11 (openjdk 11.0.16 2022-07-19)
  * Maven
 
 To start a development Jenkins instance with this plugin loaded, run:
